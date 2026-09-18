@@ -27,7 +27,6 @@ namespace StockVentas
                 }
                 catch (Exception ex)
                 {
-                    // Evita que la aplicación se cierre sin explicación si falta la configuración.
                     connectionString = string.Empty;
                     Console.Error.WriteLine(ex.Message);
                 }
@@ -49,8 +48,6 @@ namespace StockVentas
 
         private static string CargarConnectionString()
         {
-            // Permite configurar la conexión sin depender de rutas específicas de Windows,
-            // macOS o Linux. La variable de entorno tiene prioridad.
             string? variableEntorno = Environment.GetEnvironmentVariable("STOCKVENTAS_CONNECTION_STRING");
             if (!string.IsNullOrWhiteSpace(variableEntorno))
                 return variableEntorno.Trim();
