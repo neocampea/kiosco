@@ -8,8 +8,6 @@
     <RootNamespace>StockVentas</RootNamespace>
     <AssemblyName>StockVentas</AssemblyName>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
-
-    <!-- Publicación para los tres sistemas principales de escritorio. -->
     <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
