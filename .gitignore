@@ -1,18 +1,23 @@
-# .NET / Visual Studio
+# .NET
 bin/
 obj/
-.vs/
-*.user
-*.suo
 
-# Configuración local y secretos
+# SQLite local
+*.db
+*.db-shm
+*.db-wal
+
+# Configuración local
 db.config
 *.local
-.env
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
 
 # Sistema operativo
 .DS_Store
 Thumbs.db
-
-# Datos generados
-historial.txt
