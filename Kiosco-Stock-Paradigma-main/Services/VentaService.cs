@@ -21,14 +21,11 @@ namespace StockVentas.Services
             _historial = historial;
         }
 
-        // Registrar venta: recibe una lista de (productoId, cantidad), el medio de pago
-        // y el usuario de la sesión que la está registrando.
         public (bool Ok, string Mensaje, Venta? Venta) RegistrarVenta(
             List<(int ProductoId, int Cantidad)> pedido, MedioPago medioPago, int usuarioId)
         {
             var items = new List<ItemVenta>();
 
-            // Validar stock antes de confirmar nada
             foreach (var (productoId, cantidad) in pedido)
             {
                 var producto = _stockService.ObtenerProducto(productoId);
@@ -60,11 +57,12 @@ namespace StockVentas.Services
                         throw new InvalidOperationException($"Stock insuficiente para el producto ID {productoId}.");
                 }
 
-                int ventaId = conn.ExecuteScalar<int>(
+                conn.Execute(
                     @"INSERT INTO ventas (medio_pago, estado, usuario_id)
-                      VALUES (@MedioPago, 'Activa', @UsuarioId);
-                      SELECT LAST_INSERT_ID();",
+                      VALUES (@MedioPago, 'Activa', @UsuarioId)",
                     new { MedioPago = medioPago.ToString(), UsuarioId = usuarioId }, tx);
+
+                int ventaId = conn.ExecuteScalar<int>("SELECT last_insert_rowid();", transaction: tx);
 
                 foreach (var item in items)
                 {
@@ -95,7 +93,6 @@ namespace StockVentas.Services
             }
         }
 
-        // Cancelar venta: restaura el stock y marca la venta como cancelada
         public (bool Ok, string Mensaje) CancelarVenta(int ventaId)
         {
             var venta = ObtenerVenta(ventaId);
@@ -128,7 +125,6 @@ namespace StockVentas.Services
             }
         }
 
-        // Consultar ventas, con filtros opcionales por empleado y rango de fechas.
         public List<Venta> ConsultarVentas(int? usuarioId = null, DateTime? desde = null, DateTime? hasta = null)
         {
             using var conn = DbConexion.Crear(_connectionString);
@@ -184,7 +180,6 @@ namespace StockVentas.Services
             return MapearVenta(fila, items);
         }
 
-        // Totales de ventas activas agrupados por empleado, para el reporte de "caja por empleado".
         public List<ResumenVentaEmpleado> ConsultarResumenPorEmpleado(DateTime? desde = null, DateTime? hasta = null)
         {
             using var conn = DbConexion.Crear(_connectionString);
