@@ -1,0 +1,18 @@
+# .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Configuración local y secretos
+db.config
+*.local
+.env
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Datos generados
+historial.txt
