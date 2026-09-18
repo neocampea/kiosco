@@ -4,7 +4,7 @@ Aplicación de escritorio para gestión de stock, empleados y ventas.
 
 ## Plataformas soportadas
 
-El proyecto usa **C# + .NET 8 + Avalonia UI**, sin depender de Windows Forms ni WPF:
+El proyecto usa **C# + .NET 8 + Avalonia UI + SQLite local**, sin depender de Windows Forms, WPF ni de un servidor de base de datos:
 
 - Windows x64
 - Linux x64
@@ -15,8 +15,8 @@ El proyecto usa **C# + .NET 8 + Avalonia UI**, sin depender de Windows Forms ni 
 
 - .NET 8 SDK
 - Git
-- MySQL 8.x o MariaDB compatible
-- Docker Desktop (opcional, recomendado para el entorno de desarrollo)
+
+La aplicación crea automáticamente su base de datos SQLite local en el directorio de datos de la aplicación. No hace falta instalar MySQL, MariaDB ni Docker para ejecutarla.
 
 ## Clonar
 
@@ -25,29 +25,17 @@ git clone https://github.com/neocampea/kiosco.git
 cd kiosco/Kiosco-Stock-Paradigma-main
 ```
 
-## Base de datos
+## Base de datos local
 
-Copiá la configuración:
+Al iniciar por primera vez, la aplicación crea automáticamente:
 
-Linux/macOS:
-```bash
-cp db.config.example db.config
-```
+- La carpeta de datos de StockVentas.
+- El archivo `stockventas.db`.
+- Las tablas de usuarios, productos, ventas e items de venta.
 
-Windows PowerShell:
-```powershell
-Copy-Item db.config.example db.config
-```
+Los datos quedan guardados localmente y sobreviven al cierre de la aplicación.
 
-Podés usar MySQL/MariaDB instalado localmente o Docker.
-
-Con Docker, desde la raíz del repositorio:
-
-```bash
-docker compose up -d
-```
-
-El esquema se carga automáticamente en el primer arranque del volumen.
+SQLite utiliza almacenamiento local y memoria del sistema para trabajar rápidamente; no se necesita un servidor externo.
 
 ## Ejecutar
 
@@ -57,8 +45,6 @@ Dentro de `Kiosco-Stock-Paradigma-main`:
 dotnet restore
 dotnet run
 ```
-
-También se puede configurar la conexión con la variable de entorno `STOCKVENTAS_CONNECTION_STRING`, evitando guardar credenciales en archivos.
 
 ## Publicar
 
@@ -84,7 +70,7 @@ dotnet publish -c Release -r osx-arm64 --self-contained true
 
 ## Trabajo en grupo
 
-El repositorio es público, pero eso no otorga permisos de escritura. Para colaborar directamente, agregá a cada integrante como colaborador desde la configuración de GitHub.
+Cada integrante puede ejecutar el programa con su propia base SQLite local. Esto evita depender de un servidor para el desarrollo.
 
 Flujo recomendado:
 
@@ -95,7 +81,7 @@ Flujo recomendado:
 5. El grupo revisa los cambios.
 6. Se integra a `main`.
 
-No subir `db.config`, contraseñas, `.env`, `bin/`, `obj/` ni datos reales.
+No subir archivos de bases de datos locales, `bin/`, `obj/` ni datos reales.
 
 ## Usuario inicial
 
