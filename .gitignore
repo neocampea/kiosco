@@ -1,0 +1,23 @@
+# .NET
+bin/
+obj/
+
+# SQLite local
+*.db
+*.db-shm
+*.db-wal
+
+# Configuración local
+db.config
+*.local
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

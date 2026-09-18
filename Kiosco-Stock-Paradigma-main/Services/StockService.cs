@@ -17,16 +17,16 @@ namespace StockVentas.Services
             _historial = historial;
         }
 
-        // Registrar Producto
         public Producto RegistrarProducto(string nombre, string descripcion, string categoria, decimal precioBase, int stock)
         {
             using var conn = DbConexion.Crear(_connectionString);
 
-            int id = conn.ExecuteScalar<int>(
+            conn.Execute(
                 @"INSERT INTO productos (nombre, descripcion, categoria, precio_base, stock, activo)
-                  VALUES (@Nombre, @Descripcion, @Categoria, @PrecioBase, @Stock, 1);
-                  SELECT LAST_INSERT_ID();",
+                  VALUES (@Nombre, @Descripcion, @Categoria, @PrecioBase, @Stock, 1)",
                 new { Nombre = nombre, Descripcion = descripcion, Categoria = categoria, PrecioBase = precioBase, Stock = stock });
+
+            int id = conn.ExecuteScalar<int>("SELECT last_insert_rowid();");
 
             var producto = new Producto
             {
@@ -42,7 +42,6 @@ namespace StockVentas.Services
             return producto;
         }
 
-        // Modificar datos producto
         public bool ModificarProducto(int id, string? nombre = null, string? descripcion = null,
             string? categoria = null, decimal? precioBase = null, int? stock = null)
         {
@@ -74,7 +73,6 @@ namespace StockVentas.Services
             return true;
         }
 
-        // Eliminar producto (soft delete: hay ventas históricas con FK a productos)
         public bool EliminarProducto(int id)
         {
             var producto = ObtenerProducto(id);
@@ -87,7 +85,6 @@ namespace StockVentas.Services
             return true;
         }
 
-        // Consultar producto disponible (stock > 0 y activo)
         public List<Producto> ConsultarDisponibles()
         {
             using var conn = DbConexion.Crear(_connectionString);
@@ -102,7 +99,6 @@ namespace StockVentas.Services
                 "SELECT * FROM productos WHERE activo = 1 ORDER BY nombre").ToList();
         }
 
-        // Buscar Producto (por Id, nombre o categoría)
         public List<Producto> BuscarProducto(string criterio)
         {
             criterio = criterio.Trim();
@@ -111,7 +107,7 @@ namespace StockVentas.Services
             return conn.Query<Producto>(
                 @"SELECT * FROM productos
                   WHERE activo = 1
-                    AND (CAST(id AS CHAR) = @Criterio
+                    AND (CAST(id AS TEXT) = @Criterio
                          OR nombre LIKE @Like
                          OR categoria LIKE @Like)
                   ORDER BY nombre",
@@ -125,7 +121,6 @@ namespace StockVentas.Services
                 "SELECT * FROM productos WHERE id = @Id", new { Id = id });
         }
 
-        // Usado internamente por VentaService para descontar o restaurar stock
         public bool ActualizarStock(int id, int cantidadADescontar)
         {
             using var conn = DbConexion.Crear(_connectionString);

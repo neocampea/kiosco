@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -19,9 +17,9 @@ namespace StockVentas
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                string connectionString = CargarConnectionString();
+                DbConexion.InicializarBaseDatos();
+                string connectionString = DbConexion.ObtenerConnectionString();
 
-                // Los servicios se arman una única vez, igual que hacía Program.cs en la versión de consola.
                 var historial = new HistorialService();
                 var stockService = new StockService(connectionString, historial);
                 var pagoService = new PagoService();
@@ -35,18 +33,6 @@ namespace StockVentas
             }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        private static string CargarConnectionString()
-        {
-            const string ruta = "db.config";
-            if (!File.Exists(ruta))
-            {
-                throw new FileNotFoundException(
-                    $"No se encontró '{ruta}'. Copiá 'db.config.example' a 'db.config' y completá la contraseña de la base de datos.");
-            }
-
-            return File.ReadAllText(ruta).Trim();
         }
     }
 }

@@ -6,9 +6,7 @@ using StockVentas.Models;
 
 namespace StockVentas.Services
 {
-    // Gestión de usuarios (empleados y dueños). Solo un usuario con rol Dueño
-    // puede ejecutar estas operaciones; cada método valida el rol de quien
-    // lo ejecuta además de que la UI oculte estos controles a los empleados.
+    // Gestión de usuarios (empleados y dueños).
     public class EmpleadoService
     {
         private readonly string _connectionString;
@@ -58,10 +56,9 @@ namespace StockVentas.Services
 
             string hash = _authService.HashearPassword(passwordInicial);
 
-            int id = conn.ExecuteScalar<int>(
+            conn.Execute(
                 @"INSERT INTO usuarios (nombre_usuario, nombre_completo, rol, password_hash, activo)
-                  VALUES (@NombreUsuario, @NombreCompleto, @Rol, @PasswordHash, 1);
-                  SELECT LAST_INSERT_ID();",
+                  VALUES (@NombreUsuario, @NombreCompleto, @Rol, @PasswordHash, 1)",
                 new
                 {
                     NombreUsuario = nombreUsuario,
@@ -69,6 +66,8 @@ namespace StockVentas.Services
                     Rol = rol.ToString(),
                     PasswordHash = hash
                 });
+
+            int id = conn.ExecuteScalar<int>("SELECT last_insert_rowid();");
 
             var usuario = new Usuario
             {

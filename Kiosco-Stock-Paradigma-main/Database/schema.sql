@@ -1,45 +1,46 @@
--- Esquema de base de datos para StockVentas.
--- Cargar con: sudo mariadb stockventas < Database/schema.sql
+-- Esquema SQLite para StockVentas.
+-- La aplicación lo crea automáticamente en su primer arranque.
+-- La base de datos se guarda localmente en el directorio de datos de la aplicación.
 
 CREATE TABLE IF NOT EXISTS usuarios (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_usuario  VARCHAR(50)  NOT NULL UNIQUE,
-    nombre_completo VARCHAR(100) NOT NULL,
-    rol             ENUM('Dueno','Empleado') NOT NULL,
-    password_hash   VARCHAR(255) NOT NULL,
-    activo          TINYINT(1)   NOT NULL DEFAULT 1,
-    fecha_alta      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_usuario TEXT NOT NULL UNIQUE,
+    nombre_completo TEXT NOT NULL,
+    rol TEXT NOT NULL CHECK (rol IN ('Dueno','Empleado')),
+    password_hash TEXT NOT NULL,
+    activo INTEGER NOT NULL DEFAULT 1,
+    fecha_alta TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS productos (
-    id           INT AUTO_INCREMENT PRIMARY KEY,
-    nombre       VARCHAR(150) NOT NULL,
-    descripcion  VARCHAR(500) NOT NULL DEFAULT '',
-    categoria    VARCHAR(100) NOT NULL DEFAULT '',
-    precio_base  DECIMAL(10,2) NOT NULL,
-    stock        INT NOT NULL DEFAULT 0,
-    activo       TINYINT(1) NOT NULL DEFAULT 1,
-    fecha_alta   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    descripcion TEXT NOT NULL DEFAULT '',
+    categoria TEXT NOT NULL DEFAULT '',
+    precio_base NUMERIC NOT NULL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    activo INTEGER NOT NULL DEFAULT 1,
+    fecha_alta TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS ventas (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    fecha       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    medio_pago  ENUM('Efectivo','Transferencia','Debito','Credito') NOT NULL,
-    estado      ENUM('Activa','Cancelada') NOT NULL DEFAULT 'Activa',
-    usuario_id  INT NOT NULL,
-    CONSTRAINT fk_ventas_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    medio_pago TEXT NOT NULL CHECK (medio_pago IN ('Efectivo','Transferencia','Debito','Credito')),
+    estado TEXT NOT NULL DEFAULT 'Activa' CHECK (estado IN ('Activa','Cancelada')),
+    usuario_id INTEGER NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
 
 CREATE TABLE IF NOT EXISTS items_venta (
-    id               INT AUTO_INCREMENT PRIMARY KEY,
-    venta_id         INT NOT NULL,
-    producto_id      INT NOT NULL,
-    nombre_producto  VARCHAR(150) NOT NULL,
-    cantidad         INT NOT NULL,
-    precio_unitario  DECIMAL(10,2) NOT NULL,
-    CONSTRAINT fk_items_venta_venta    FOREIGN KEY (venta_id)    REFERENCES ventas(id)    ON DELETE CASCADE,
-    CONSTRAINT fk_items_venta_producto FOREIGN KEY (producto_id) REFERENCES productos(id)
-) ENGINE=InnoDB;
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    venta_id INTEGER NOT NULL,
+    producto_id INTEGER NOT NULL,
+    nombre_producto TEXT NOT NULL,
+    cantidad INTEGER NOT NULL,
+    precio_unitario NUMERIC NOT NULL,
+    FOREIGN KEY (venta_id) REFERENCES ventas(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+);
 
-CREATE INDEX idx_ventas_usuario_fecha ON ventas(usuario_id, fecha);
+CREATE INDEX IF NOT EXISTS idx_ventas_usuario_fecha ON ventas(usuario_id, fecha);
