@@ -1,0 +1,288 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using StockVentas.Models;
+using StockVentas.Services;
+
+namespace StockVentas
+{
+    public class Program
+    {
+        private static readonly HistorialService historial = new HistorialService();
+        private static readonly StockService stockService = new StockService(historial);
+        private static readonly PagoService pagoService = new PagoService();
+        private static readonly VentaService ventaService = new VentaService(stockService, pagoService, historial);
+
+        public static void Main(string[] args)
+        {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            CargarDatosDeEjemplo();
+
+            bool salir = false;
+            while (!salir)
+            {
+                MostrarMenu();
+                string opcion = Console.ReadLine() ?? "";
+                Console.WriteLine();
+
+                switch (opcion)
+                {
+                    case "1": RegistrarProducto(); break;
+                    case "2": ModificarProducto(); break;
+                    case "3": EliminarProducto(); break;
+                    case "4": ConsultarDisponibles(); break;
+                    case "5": BuscarProducto(); break;
+                    case "6": CalcularPrecioSegunMedioPago(); break;
+                    case "7": RegistrarVenta(); break;
+                    case "8": CancelarVenta(); break;
+                    case "9": ConsultarVentas(); break;
+                    case "10": historial.MostrarHistorial(); break;
+                    case "0": salir = true; break;
+                    default: Console.WriteLine("Opción inválida."); break;
+                }
+
+                if (!salir)
+                {
+                    Console.WriteLine("\nPresione ENTER para continuar...");
+                    Console.ReadLine();
+                }
+            }
+
+            Console.WriteLine("¡Hasta luego!");
+        }
+
+        private static void MostrarMenu()
+        {
+            Console.Clear();
+            Console.WriteLine("========== CONTROL DE STOCK Y VENTAS ==========");
+            Console.WriteLine("1. Registrar producto");
+            Console.WriteLine("2. Modificar datos de producto");
+            Console.WriteLine("3. Eliminar producto");
+            Console.WriteLine("4. Consultar productos disponibles");
+            Console.WriteLine("5. Buscar producto");
+            Console.WriteLine("6. Calcular precio según medio de pago");
+            Console.WriteLine("7. Registrar venta");
+            Console.WriteLine("8. Cancelar venta");
+            Console.WriteLine("9. Consultar ventas");
+            Console.WriteLine("10. Ver historial del sistema");
+            Console.WriteLine("0. Salir");
+            Console.WriteLine("================================================");
+            Console.Write("Seleccione una opción: ");
+        }
+
+        // ---------- PRODUCTOS ----------
+
+        private static void RegistrarProducto()
+        {
+            Console.WriteLine("--- Registrar producto ---");
+            Console.Write("Nombre: ");
+            string nombre = Console.ReadLine() ?? "";
+            Console.Write("Descripción: ");
+            string descripcion = Console.ReadLine() ?? "";
+            Console.Write("Categoría: ");
+            string categoria = Console.ReadLine() ?? "";
+            decimal precio = LeerDecimal("Precio base: ");
+            int stock = LeerEntero("Stock inicial: ");
+
+            var producto = stockService.RegistrarProducto(nombre, descripcion, categoria, precio, stock);
+            Console.WriteLine($"Producto registrado con éxito -> {producto}");
+        }
+
+        private static void ModificarProducto()
+        {
+            Console.WriteLine("--- Modificar producto ---");
+            int id = LeerEntero("ID del producto a modificar: ");
+            var producto = stockService.ObtenerProducto(id);
+            if (producto == null)
+            {
+                Console.WriteLine("No se encontró un producto con ese ID.");
+                return;
+            }
+
+            Console.WriteLine($"Producto actual: {producto}");
+            Console.WriteLine("Deje en blanco los campos que no desea modificar.");
+
+            Console.Write($"Nuevo nombre ({producto.Nombre}): ");
+            string nombre = Console.ReadLine() ?? "";
+            Console.Write($"Nueva descripción ({producto.Descripcion}): ");
+            string descripcion = Console.ReadLine() ?? "";
+            Console.Write($"Nueva categoría ({producto.Categoria}): ");
+            string categoria = Console.ReadLine() ?? "";
+            Console.Write($"Nuevo precio base ({producto.PrecioBase}) [ENTER para no cambiar]: ");
+            string precioStr = Console.ReadLine() ?? "";
+            Console.Write($"Nuevo stock ({producto.Stock}) [ENTER para no cambiar]: ");
+            string stockStr = Console.ReadLine() ?? "";
+
+            decimal? precio = decimal.TryParse(precioStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var p) ? p : (decimal?)null;
+            int? stock = int.TryParse(stockStr, out var s) ? s : (int?)null;
+
+            bool ok = stockService.ModificarProducto(id, nombre, descripcion, categoria, precio, stock);
+            Console.WriteLine(ok ? "Producto modificado con éxito." : "No se pudo modificar el producto.");
+        }
+
+        private static void EliminarProducto()
+        {
+            Console.WriteLine("--- Eliminar producto ---");
+            int id = LeerEntero("ID del producto a eliminar: ");
+            bool ok = stockService.EliminarProducto(id);
+            Console.WriteLine(ok ? "Producto eliminado con éxito." : "No se encontró un producto con ese ID.");
+        }
+
+        private static void ConsultarDisponibles()
+        {
+            Console.WriteLine("--- Productos disponibles (stock > 0) ---");
+            var disponibles = stockService.ConsultarDisponibles();
+            if (disponibles.Count == 0)
+            {
+                Console.WriteLine("No hay productos disponibles.");
+                return;
+            }
+            foreach (var p in disponibles)
+                Console.WriteLine(p);
+        }
+
+        private static void BuscarProducto()
+        {
+            Console.WriteLine("--- Buscar producto ---");
+            Console.Write("Ingrese ID, nombre o categoría: ");
+            string criterio = Console.ReadLine() ?? "";
+            var resultados = stockService.BuscarProducto(criterio);
+
+            if (resultados.Count == 0)
+            {
+                Console.WriteLine("No se encontraron productos.");
+                return;
+            }
+            foreach (var p in resultados)
+                Console.WriteLine(p);
+        }
+
+        private static void CalcularPrecioSegunMedioPago()
+        {
+            Console.WriteLine("--- Calcular precio según medio de pago ---");
+            int id = LeerEntero("ID del producto: ");
+            var producto = stockService.ObtenerProducto(id);
+            if (producto == null)
+            {
+                Console.WriteLine("No se encontró un producto con ese ID.");
+                return;
+            }
+
+            var medioPago = LeerMedioPago();
+            decimal precioFinal = pagoService.CalcularPrecioSegunMedioPago(producto.PrecioBase, medioPago);
+            Console.WriteLine($"Precio base: {producto.PrecioBase:C} | Medio de pago: {medioPago} | Precio final: {precioFinal:C}");
+        }
+
+        // ---------- VENTAS ----------
+
+        private static void RegistrarVenta()
+        {
+            Console.WriteLine("--- Registrar venta ---");
+            var pedido = new List<(int ProductoId, int Cantidad)>();
+
+            bool agregarMas = true;
+            while (agregarMas)
+            {
+                int id = LeerEntero("ID del producto: ");
+                var producto = stockService.ObtenerProducto(id);
+                if (producto == null)
+                {
+                    Console.WriteLine("Producto no encontrado.");
+                }
+                else
+                {
+                    int cantidad = LeerEntero($"Cantidad de '{producto.Nombre}' (stock disponible: {producto.Stock}): ");
+                    pedido.Add((id, cantidad));
+                }
+
+                Console.Write("¿Agregar otro producto a la venta? (s/n): ");
+                agregarMas = (Console.ReadLine() ?? "").Trim().ToLower() == "s";
+            }
+
+            if (pedido.Count == 0)
+            {
+                Console.WriteLine("No se cargaron productos, venta cancelada.");
+                return;
+            }
+
+            var medioPago = LeerMedioPago();
+            var (ok, mensaje, venta) = ventaService.RegistrarVenta(pedido, medioPago);
+            Console.WriteLine(mensaje);
+            if (ok && venta != null)
+                Console.WriteLine(venta);
+        }
+
+        private static void CancelarVenta()
+        {
+            Console.WriteLine("--- Cancelar venta ---");
+            int id = LeerEntero("ID de la venta a cancelar: ");
+            var (ok, mensaje) = ventaService.CancelarVenta(id);
+            Console.WriteLine(mensaje);
+        }
+
+        private static void ConsultarVentas()
+        {
+            Console.WriteLine("--- Consultar ventas ---");
+            var ventas = ventaService.ConsultarVentas();
+            if (ventas.Count == 0)
+            {
+                Console.WriteLine("No hay ventas registradas.");
+                return;
+            }
+            foreach (var v in ventas)
+            {
+                Console.WriteLine(v);
+                Console.WriteLine("------------------------------------------------");
+            }
+        }
+
+        // ---------- UTILIDADES DE LECTURA ----------
+
+        private static int LeerEntero(string mensaje)
+        {
+            int valor;
+            Console.Write(mensaje);
+            while (!int.TryParse(Console.ReadLine(), out valor) || valor < 0)
+            {
+                Console.Write("Valor inválido, ingrese un número entero válido: ");
+            }
+            return valor;
+        }
+
+        private static decimal LeerDecimal(string mensaje)
+        {
+            decimal valor;
+            Console.Write(mensaje);
+            while (!decimal.TryParse(Console.ReadLine(), NumberStyles.Any, CultureInfo.InvariantCulture, out valor) || valor < 0)
+            {
+                Console.Write("Valor inválido, ingrese un número válido: ");
+            }
+            return valor;
+        }
+
+        private static MedioPago LeerMedioPago()
+        {
+            Console.WriteLine("Medios de pago disponibles:");
+            var valores = Enum.GetValues(typeof(MedioPago)).Cast<MedioPago>().ToList();
+            for (int i = 0; i < valores.Count; i++)
+                Console.WriteLine($"  {i + 1}. {valores[i]}");
+
+            Console.Write("Seleccione medio de pago: ");
+            int opcion;
+            while (!int.TryParse(Console.ReadLine(), out opcion) || opcion < 1 || opcion > valores.Count)
+            {
+                Console.Write("Opción inválida, intente de nuevo: ");
+            }
+
+            return valores[opcion - 1];
+        }
+
+        private static void CargarDatosDeEjemplo()
+        {
+            stockService.RegistrarProducto("Coca Cola 500ml", "Gaseosa", "Bebidas", 1200m, 50);
+            stockService.RegistrarProducto("Pan Lactal", "Pan de molde", "Panificados", 1800m, 30);
+            stockService.RegistrarProducto("Fideos 500g", "Fideos secos", "Almacén", 900m, 40);
+        }
+    }
+}

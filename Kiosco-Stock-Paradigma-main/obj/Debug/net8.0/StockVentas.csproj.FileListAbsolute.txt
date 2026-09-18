@@ -1,0 +1,7 @@
+/home/luciano/Descargas/Kiosco-Stock-Paradigma-main/obj/Debug/net8.0/StockVentas.csproj.AssemblyReference.cache
+/home/luciano/Descargas/Kiosco-Stock-Paradigma-main/obj/Debug/net8.0/Avalonia/Resources.Inputs.cache
+/home/luciano/Descargas/Kiosco-Stock-Paradigma-main/obj/Debug/net8.0/Avalonia/resources
+/home/luciano/Descargas/Kiosco-Stock-Paradigma-main/obj/Debug/net8.0/StockVentas.GeneratedMSBuildEditorConfig.editorconfig
+/home/luciano/Descargas/Kiosco-Stock-Paradigma-main/obj/Debug/net8.0/StockVentas.AssemblyInfoInputs.cache
+/home/luciano/Descargas/Kiosco-Stock-Paradigma-main/obj/Debug/net8.0/StockVentas.AssemblyInfo.cs
+/home/luciano/Descargas/Kiosco-Stock-Paradigma-main/obj/Debug/net8.0/StockVentas.csproj.CoreCompileInputs.cache

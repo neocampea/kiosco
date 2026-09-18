@@ -1,0 +1,239 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="StockVentas.Views.MainWindow"
+        Title="Control de Stock y Ventas"
+        Width="1100" Height="720">
+  <DockPanel>
+
+    <!-- ===================== BARRA DE USUARIO ===================== -->
+    <Border DockPanel.Dock="Top" Background="#22808080" Padding="10">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock x:Name="txtUsuarioLogueado" Grid.Column="0" VerticalAlignment="Center" FontWeight="Bold" />
+        <Button x:Name="btnCambiarMiPassword" Grid.Column="1" Content="Cambiar mi contraseña"
+                Click="BtnCambiarMiPassword_Click" Margin="0,0,8,0" />
+        <Button x:Name="btnCerrarSesion" Grid.Column="2" Content="Cerrar sesión" Click="BtnCerrarSesion_Click" />
+      </Grid>
+    </Border>
+
+    <TabControl>
+
+      <!-- ===================== PRODUCTOS ===================== -->
+      <TabItem Header="Productos">
+        <Grid ColumnDefinitions="2*,Auto,1*" Margin="10">
+          <StackPanel Grid.Column="0" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox x:Name="txtBuscarProducto" Width="220" PlaceholderText="ID, nombre o categoría" />
+              <Button x:Name="btnBuscarProducto" Content="Buscar" Click="BtnBuscarProducto_Click" />
+              <Button x:Name="btnMostrarTodos" Content="Mostrar todos" Click="BtnMostrarTodos_Click" />
+              <CheckBox x:Name="chkSoloDisponibles" Content="Solo disponibles (stock &gt; 0)"
+                        IsCheckedChanged="ChkSoloDisponibles_IsCheckedChanged" />
+            </StackPanel>
+
+            <DataGrid x:Name="dgProductos" Height="480" AutoGenerateColumns="False"
+                      IsReadOnly="True" GridLinesVisibility="All"
+                      SelectionChanged="DgProductos_SelectionChanged">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
+                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="2*" />
+                <DataGridTextColumn Header="Categoría" Binding="{Binding Categoria}" Width="*" />
+                <DataGridTextColumn Header="Precio base" Binding="{Binding PrecioBase, StringFormat={}{0:C}}" Width="*" />
+                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="70" />
+              </DataGrid.Columns>
+            </DataGrid>
+          </StackPanel>
+
+          <GridSplitter Grid.Column="1" Width="6" />
+
+          <StackPanel Grid.Column="2" Spacing="6">
+            <TextBlock Text="Alta / edición de producto" FontWeight="Bold" />
+            <TextBlock x:Name="txtIdSeleccionado" Text="Nuevo producto" FontStyle="Italic" />
+            <TextBox x:Name="txtNombre" PlaceholderText="Nombre" />
+            <TextBox x:Name="txtDescripcion" PlaceholderText="Descripción" />
+            <TextBox x:Name="txtCategoria" PlaceholderText="Categoría" />
+            <TextBlock Text="Precio base" />
+            <NumericUpDown x:Name="nudPrecioBase" Minimum="0" Increment="1" FormatString="F2" />
+            <TextBlock Text="Stock" />
+            <NumericUpDown x:Name="nudStock" Minimum="0" Increment="1" FormatString="F0" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Button x:Name="btnNuevo" Content="Nuevo" Click="BtnNuevo_Click" />
+              <Button x:Name="btnGuardar" Content="Guardar" Click="BtnGuardar_Click" />
+              <Button x:Name="btnEliminar" Content="Eliminar" Click="BtnEliminar_Click" />
+            </StackPanel>
+            <TextBlock x:Name="txtEstadoProductos" TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <!-- ===================== CALCULAR PRECIO ===================== -->
+      <TabItem Header="Calcular precio">
+        <StackPanel Margin="20" Spacing="10" Width="420" HorizontalAlignment="Left">
+          <TextBlock Text="Calcular precio según medio de pago" FontWeight="Bold" FontSize="16" />
+          <TextBlock Text="Producto" />
+          <ComboBox x:Name="cboProductoPrecio" HorizontalAlignment="Stretch">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Nombre}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Text="Medio de pago" />
+          <ComboBox x:Name="cboMedioPago" HorizontalAlignment="Stretch" />
+          <Button x:Name="btnCalcularPrecio" Content="Calcular" Click="BtnCalcularPrecio_Click" />
+          <Border Background="#22808080" Padding="10" CornerRadius="4">
+            <TextBlock x:Name="txtResultadoPrecio" TextWrapping="Wrap" />
+          </Border>
+        </StackPanel>
+      </TabItem>
+
+      <!-- ===================== VENTAS ===================== -->
+      <TabItem Header="Ventas">
+        <Grid RowDefinitions="Auto,Auto,*" Margin="10">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Registrar venta:" FontWeight="Bold" VerticalAlignment="Center" />
+            <ComboBox x:Name="cboProductoVenta" Width="220">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Nombre}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <NumericUpDown x:Name="nudCantidadVenta" Minimum="1" Value="1" Width="130" FormatString="F0" />
+            <Button x:Name="btnAgregarAlCarrito" Content="Agregar al carrito" Click="BtnAgregarAlCarrito_Click" />
+            <ComboBox x:Name="cboMedioPagoVenta" Width="150" />
+            <Button x:Name="btnConfirmarVenta" Content="Confirmar venta" Click="BtnConfirmarVenta_Click" />
+            <Button x:Name="btnVaciarCarrito" Content="Vaciar carrito" Click="BtnVaciarCarrito_Click" />
+          </StackPanel>
+
+          <StackPanel Grid.Row="1" Spacing="4" Margin="0,8">
+            <DataGrid x:Name="dgCarrito" Height="120" AutoGenerateColumns="False" IsReadOnly="True">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Producto" Binding="{Binding Nombre}" Width="2*" />
+                <DataGridTextColumn Header="Cantidad" Binding="{Binding Cantidad}" Width="*" />
+              </DataGrid.Columns>
+            </DataGrid>
+            <TextBlock x:Name="txtEstadoVenta" TextWrapping="Wrap" />
+          </StackPanel>
+
+          <Grid Grid.Row="2" ColumnDefinitions="2*,1*">
+            <DataGrid x:Name="dgVentas" Grid.Column="0" AutoGenerateColumns="False" IsReadOnly="True"
+                      SelectionChanged="DgVentas_SelectionChanged">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
+                <DataGridTextColumn Header="Fecha" Binding="{Binding FechaTexto}" Width="*" />
+                <DataGridTextColumn Header="Empleado" Binding="{Binding NombreUsuario}" Width="*" />
+                <DataGridTextColumn Header="Medio de pago" Binding="{Binding MedioPago}" Width="*" />
+                <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="*" />
+                <DataGridTextColumn Header="Total" Binding="{Binding TotalTexto}" Width="*" />
+              </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="6">
+              <Button x:Name="btnCancelarVenta" Content="Cancelar venta seleccionada" Click="BtnCancelarVenta_Click" />
+              <TextBox x:Name="txtDetalleVenta" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Height="320" />
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </TabItem>
+
+      <!-- ===================== HISTORIAL ===================== -->
+      <TabItem Header="Historial">
+        <DockPanel Margin="10">
+          <Button DockPanel.Dock="Top" x:Name="btnRefrescarHistorial" Content="Refrescar"
+                  Click="BtnRefrescarHistorial_Click" Margin="0,0,0,8" />
+          <ListBox x:Name="lstHistorial" />
+        </DockPanel>
+      </TabItem>
+
+      <!-- ===================== EMPLEADOS (solo Dueño) ===================== -->
+      <TabItem x:Name="tabEmpleados" Header="Empleados">
+        <Grid ColumnDefinitions="2*,Auto,1*" Margin="10">
+          <StackPanel Grid.Column="0" Spacing="8">
+            <DataGrid x:Name="dgEmpleados" Height="480" AutoGenerateColumns="False"
+                      IsReadOnly="True" GridLinesVisibility="All"
+                      SelectionChanged="DgEmpleados_SelectionChanged">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
+                <DataGridTextColumn Header="Usuario" Binding="{Binding NombreUsuario}" Width="*" />
+                <DataGridTextColumn Header="Nombre completo" Binding="{Binding NombreCompleto}" Width="2*" />
+                <DataGridTextColumn Header="Rol" Binding="{Binding Rol}" Width="*" />
+                <DataGridTextColumn Header="Activo" Binding="{Binding Activo}" Width="70" />
+              </DataGrid.Columns>
+            </DataGrid>
+          </StackPanel>
+
+          <GridSplitter Grid.Column="1" Width="6" />
+
+          <StackPanel Grid.Column="2" Spacing="6">
+            <TextBlock Text="Alta / edición de empleado" FontWeight="Bold" />
+            <TextBlock x:Name="txtIdEmpleadoSeleccionado" Text="Nuevo empleado" FontStyle="Italic" />
+            <TextBlock Text="Usuario (solo alta)" />
+            <TextBox x:Name="txtUsuarioEmpleado" PlaceholderText="nombre.usuario" />
+            <TextBlock Text="Nombre completo" />
+            <TextBox x:Name="txtNombreCompletoEmpleado" PlaceholderText="Nombre y apellido" />
+            <TextBlock Text="Rol" />
+            <ComboBox x:Name="cboRolEmpleado" HorizontalAlignment="Stretch" />
+            <TextBlock Text="Contraseña (solo alta / reseteo)" />
+            <TextBox x:Name="txtPasswordEmpleado" PasswordChar="•" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Button x:Name="btnNuevoEmpleado" Content="Nuevo" Click="BtnNuevoEmpleado_Click" />
+              <Button x:Name="btnGuardarEmpleado" Content="Guardar" Click="BtnGuardarEmpleado_Click" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Button x:Name="btnDesactivarEmpleado" Content="Desactivar" Click="BtnDesactivarEmpleado_Click" />
+              <Button x:Name="btnReactivarEmpleado" Content="Reactivar" Click="BtnReactivarEmpleado_Click" />
+            </StackPanel>
+            <Button x:Name="btnResetearPasswordEmpleado" Content="Resetear contraseña"
+                    Click="BtnResetearPasswordEmpleado_Click" />
+            <TextBlock x:Name="txtEstadoEmpleados" TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <!-- ===================== CAJA POR EMPLEADO (solo Dueño) ===================== -->
+      <TabItem x:Name="tabCajaPorEmpleado" Header="Caja por empleado">
+        <Grid RowDefinitions="Auto,*" Margin="10">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
+            <TextBlock Text="Empleado" VerticalAlignment="Center" />
+            <ComboBox x:Name="cboFiltroEmpleado" Width="200">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding NombreCompleto}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="Desde" VerticalAlignment="Center" />
+            <DatePicker x:Name="dpDesde" />
+            <TextBlock Text="Hasta" VerticalAlignment="Center" />
+            <DatePicker x:Name="dpHasta" />
+            <Button x:Name="btnConsultarCaja" Content="Consultar" Click="BtnConsultarCaja_Click" />
+            <Button x:Name="btnLimpiarFiltroCaja" Content="Limpiar filtro" Click="BtnLimpiarFiltroCaja_Click" />
+          </StackPanel>
+
+          <Grid Grid.Row="1" ColumnDefinitions="2*,1*">
+            <DataGrid x:Name="dgVentasPorEmpleado" Grid.Column="0" AutoGenerateColumns="False" IsReadOnly="True">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" />
+                <DataGridTextColumn Header="Fecha" Binding="{Binding FechaTexto}" Width="*" />
+                <DataGridTextColumn Header="Empleado" Binding="{Binding NombreUsuario}" Width="*" />
+                <DataGridTextColumn Header="Medio de pago" Binding="{Binding MedioPago}" Width="*" />
+                <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="*" />
+                <DataGridTextColumn Header="Total" Binding="{Binding TotalTexto}" Width="*" />
+              </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="6">
+              <TextBlock Text="Resumen por empleado" FontWeight="Bold" />
+              <DataGrid x:Name="dgResumenPorEmpleado" AutoGenerateColumns="False" IsReadOnly="True" Height="400">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Empleado" Binding="{Binding NombreUsuario}" Width="2*" />
+                  <DataGridTextColumn Header="Ventas" Binding="{Binding CantidadVentas}" Width="*" />
+                  <DataGridTextColumn Header="Total vendido" Binding="{Binding TotalVendido, StringFormat={}{0:C}}" Width="*" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </TabItem>
+
+    </TabControl>
+  </DockPanel>
+</Window>
