@@ -1,0 +1,18 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: kiosco-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: stockventas
+      MYSQL_USER: stockventas_app
+      MYSQL_PASSWORD: stockventas_dev
+      MYSQL_ROOT_PASSWORD: root_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - kiosco_mysql_data:/var/lib/mysql
+      - ./Kiosco-Stock-Paradigma-main/Database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+volumes:
+  kiosco_mysql_data:
